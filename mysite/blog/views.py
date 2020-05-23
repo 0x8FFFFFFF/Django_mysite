@@ -19,21 +19,26 @@ def post_detail(request, year, month, day, post):
 
 
 def post_share(request, post_id):
-    # Получение статьи по идентификатору.
-    post = get_object_or_404(Post, id=post_id,status='published')
+    # Retrieve post by id
+    post = get_object_or_404(Post, id=post_id, status='published')
+    sent = False
+
     if request.method == 'POST':
-        # Форма была отправлена на сохранение.
+        # Form was submitted
         form = EmailPostForm(request.POST)
-        sent = False
         if form.is_valid():
-            # Все поля формы прошли валидацию.
+            # Form fields passed validation
             cd = form.cleaned_data
-            # Отправка электронной почты.
-            post_url = request.build_absolute_uri(post.get_absolute_url())
+            post_url = request.build_absolute_uri(
+                post.get_absolute_url())
             subject = '{} ({}) recommends you reading "{}"'.format(cd['name'], cd['email'], post.title)
             message = 'Read "{}" at {}\n\n{}\'s comments: {}'.format(post.title, post_url, cd['name'], cd['comments'])
-            send_mail(subject, message, 'admin@myblog.com', [cd['to']])
+            send_mail(subject, message, 'admin@myblog.com',
+                      [cd['to']])
             sent = True
-        else:
-            form = EmailPostForm()
-            return render(request, 'blog/post/share.html', {'post': post, 'form': form, 'sent': sent})
+    else:
+        form = EmailPostForm()
+    return render(request, 'blog/post/share.html', {'post': post,
+                                                    'form': form,
+                                                    'sent': sent})
+
